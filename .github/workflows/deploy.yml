@@ -1,0 +1,54 @@
+name: Build & Deploy AI Cases Site
+
+on:
+  # 毎日午前7時（JST）に自動実行
+  schedule:
+    - cron: '0 22 * * *'   # UTC 22:00 = JST 07:00
+
+  # Notionを更新した後に手動でも実行できる
+  workflow_dispatch:
+
+  # mainブランチにpushしたときも実行
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: Node.js のセットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Notionからデータ取得
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DB_ID: ${{ secrets.NOTION_DB_ID }}
+        run: node scripts/fetch_notion.js
+
+      - name: HTMLをビルド
+        run: node scripts/build.js
+
+      - name: GitHub Pages用にアップロード
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: GitHub Pages にデプロイ
+        id: deployment
+        uses: actions/deploy-pages@v4
