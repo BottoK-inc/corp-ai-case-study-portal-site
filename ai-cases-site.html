@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI活用事例ライブラリ | BottoK</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F3EE; --surface: #FFFFFF; --surface2: #EDEBE5;
+    --ink: #1A1916; --ink2: #6B6860; --ink3: #A8A69F;
+    --accent: #2D5BE3; --accent-light: #EEF2FD; --accent-dark: #1A3FA8;
+    --red: #D64040; --red-light: #FDF0F0;
+    --border: rgba(26,25,22,0.1); --border2: rgba(26,25,22,0.06);
+    --radius: 12px; --radius-sm: 8px;
+    --shadow-hover: 0 4px 12px rgba(0,0,0,0.12), 0 12px 32px rgba(0,0,0,0.08);
+    --font-display: 'Syne', sans-serif; --font-body: 'Noto Sans JP', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-body); background: var(--bg); color: var(--ink); min-height: 100vh; line-height: 1.6; }
+
+  .site-header { background: var(--ink); color: #fff; padding: 0 2rem; position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; height: 56px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .site-logo { font-family: var(--font-display); font-size: 15px; font-weight: 700; letter-spacing: 0.04em; color: #fff; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+  .site-logo span { font-size: 11px; font-weight: 400; opacity: 0.5; letter-spacing: 0.08em; text-transform: uppercase; }
+  .header-count { font-size: 12px; opacity: 0.5; }
+
+  .hero { background: var(--ink); color: #fff; padding: 4rem 2rem 3.5rem; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 80% 50%, rgba(45,91,227,0.18) 0%, transparent 70%), radial-gradient(ellipse 40% 60% at 20% 80%, rgba(201,150,58,0.12) 0%, transparent 60%); }
+  .hero-inner { position: relative; max-width: 1100px; margin: 0 auto; }
+  .hero-eyebrow { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.5; margin-bottom: 1rem; }
+  .hero-title { font-family: var(--font-display); font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; line-height: 1.1; margin-bottom: 1rem; letter-spacing: -0.02em; }
+  .hero-title em { font-style: normal; color: #6B8FF5; }
+  .hero-sub { font-size: 15px; opacity: 0.6; max-width: 480px; line-height: 1.7; font-weight: 300; }
+
+  .controls-wrap { background: var(--surface); border-bottom: 1px solid var(--border2); position: sticky; top: 56px; z-index: 90; }
+  .controls { max-width: 1100px; margin: 0 auto; padding: 1rem 2rem; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .search-wrap { flex: 1; min-width: 200px; position: relative; }
+  .search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--ink3); pointer-events: none; }
+  .search-input { width: 100%; height: 38px; padding: 0 12px 0 36px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-family: var(--font-body); font-size: 13px; background: var(--bg); color: var(--ink); outline: none; transition: border-color 0.15s; }
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--ink3); }
+  .filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pill { height: 32px; padding: 0 14px; border-radius: 999px; border: 1.5px solid var(--border); background: transparent; font-family: var(--font-body); font-size: 12px; color: var(--ink2); cursor: pointer; transition: all 0.12s; white-space: nowrap; }
+  .pill:hover { border-color: var(--accent); color: var(--accent); }
+  .pill.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 500; }
+
+  .main { max-width: 1100px; margin: 0 auto; padding: 2rem 2rem 4rem; }
+  .grid-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+  .result-count { font-size: 13px; color: var(--ink3); }
+  .sort-select { height: 32px; padding: 0 10px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-family: var(--font-body); font-size: 12px; background: var(--surface); color: var(--ink2); cursor: pointer; outline: none; }
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+
+  .case-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border2); overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; display: flex; flex-direction: column; animation: fadeUp 0.35s both; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .case-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); border-color: var(--border); }
+  .card-thumb { width: 100%; aspect-ratio: 16/9; background: var(--surface2); position: relative; overflow: hidden; }
+  .card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .thumb-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+  .thumb-icon { width: 40px; height: 40px; opacity: 0.22; color: var(--ink2); }
+  .card-cat-badge { position: absolute; bottom: 10px; left: 10px; height: 22px; padding: 0 10px; border-radius: 999px; font-size: 10px; font-weight: 500; display: flex; align-items: center; }
+  .card-body { padding: 1rem 1.125rem; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+  .card-title { font-family: var(--font-display); font-size: 15px; font-weight: 600; line-height: 1.4; color: var(--ink); letter-spacing: -0.01em; }
+  .card-desc { font-size: 12.5px; color: var(--ink2); line-height: 1.65; font-weight: 300; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .card-tags { display: flex; gap: 5px; flex-wrap: wrap; }
+  .tag { height: 20px; padding: 0 8px; border-radius: 4px; font-size: 10px; background: var(--accent-light); color: var(--accent-dark); font-weight: 500; display: flex; align-items: center; }
+  .card-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 10px; border-top: 1px solid var(--border2); margin-top: auto; }
+  .card-date { font-size: 11px; color: var(--ink3); }
+  .card-actions { display: flex; gap: 8px; align-items: center; }
+  .like-btn { display: flex; align-items: center; gap: 5px; padding: 0 10px; height: 28px; border-radius: 999px; border: 1.5px solid var(--border); background: transparent; font-family: var(--font-body); font-size: 12px; color: var(--ink2); cursor: pointer; transition: all 0.15s; }
+  .like-btn:hover { border-color: var(--red); color: var(--red); }
+  .like-btn.liked { background: var(--red-light); border-color: var(--red); color: var(--red); }
+  .slide-link { display: flex; align-items: center; gap: 5px; padding: 0 10px; height: 28px; border-radius: var(--radius-sm); background: var(--accent); color: #fff; font-size: 11px; font-weight: 500; text-decoration: none; transition: background 0.15s; font-family: var(--font-body); }
+  .slide-link:hover { background: var(--accent-dark); }
+
+  .cat-業務効率化 { background: rgba(45,91,227,0.12); color: #1A3FA8; }
+  .cat-営業支援   { background: rgba(31,138,94,0.12);  color: #155F3F; }
+  .cat-資料作成   { background: rgba(126,84,184,0.12); color: #5B3A8A; }
+  .cat-コード生成 { background: rgba(215,113,30,0.12); color: #9B5215; }
+  .cat-データ分析 { background: rgba(201,150,58,0.12); color: #8A5E0F; }
+  .cat-その他     { background: rgba(108,101,90,0.12); color: #4A4640; }
+
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 200; align-items: center; justify-content: center; padding: 2rem; backdrop-filter: blur(4px); }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border-radius: 16px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 64px rgba(0,0,0,0.25); }
+  .modal-header { position: relative; padding: 1.5rem 1.5rem 0; }
+  .modal-close { position: absolute; top: 1rem; right: 1rem; width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--border); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--ink2); font-size: 16px; transition: background 0.12s; }
+  .modal-close:hover { background: var(--surface2); }
+  .modal-body { padding: 1.25rem 1.5rem 1.5rem; }
+  .modal-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; line-height: 1.3; letter-spacing: -0.01em; margin-bottom: 12px; padding-right: 2rem; }
+  .modal-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
+  .modal-desc { font-size: 14px; color: var(--ink2); line-height: 1.75; font-weight: 300; margin-bottom: 1.25rem; }
+  .modal-slide-btn { display: inline-flex; align-items: center; gap: 8px; padding: 0 20px; height: 42px; border-radius: var(--radius-sm); background: var(--accent); color: #fff; text-decoration: none; font-size: 14px; font-weight: 500; transition: background 0.15s; font-family: var(--font-body); }
+  .modal-slide-btn:hover { background: var(--accent-dark); }
+  .modal-slide-nourl { font-size: 13px; color: var(--ink3); padding: 12px; background: var(--bg); border-radius: var(--radius-sm); }
+  .modal-notion-link { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink3); text-decoration: none; margin-top: 14px; }
+  .modal-notion-link:hover { color: var(--accent); }
+
+  .state-empty { grid-column: 1/-1; text-align: center; padding: 5rem 2rem; color: var(--ink3); }
+  .state-empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.3; }
+
+  .site-footer { border-top: 1px solid var(--border2); padding: 1.5rem 2rem; text-align: center; font-size: 12px; color: var(--ink3); }
+  .site-footer a { color: inherit; }
+  .site-footer a:hover { color: var(--accent); }
+
+  @media (max-width: 600px) {
+    .hero { padding: 2.5rem 1.25rem 2rem; }
+    .controls, .main { padding-left: 1.25rem; padding-right: 1.25rem; }
+    .cards-grid { grid-template-columns: 1fr; }
+    .site-header { padding: 0 1.25rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <a href="#" class="site-logo">BottoK <span>AI事例ライブラリ</span></a>
+  <span class="header-count" id="headerCount"></span>
+</header>
+
+<section class="hero">
+  <div class="hero-inner">
+    <p class="hero-eyebrow">Generative AI Use Cases</p>
+    <h1 class="hero-title">社内の<em>生成AI</em>活用事例<br>を一覧で</h1>
+    <p class="hero-sub">営業現場で即使える事例を集約。商談のその場でアクセスして、提案の説得力を高めよう。</p>
+  </div>
+</section>
+
+<div class="controls-wrap">
+  <div class="controls">
+    <div class="search-wrap">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input class="search-input" type="text" id="searchInput" placeholder="タイトル・概要で検索…">
+    </div>
+    <div class="filter-pills" id="filterPills"></div>
+  </div>
+</div>
+
+<main class="main">
+  <div class="grid-header">
+    <span class="result-count" id="resultCount"></span>
+    <select class="sort-select" id="sortSelect">
+      <option value="newest">新しい順</option>
+      <option value="likes">いいね順</option>
+    </select>
+  </div>
+  <div class="cards-grid" id="cardsGrid"></div>
+</main>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <button class="modal-close" id="modalCloseBtn">✕</button>
+      <p class="modal-title" id="mTitle"></p>
+    </div>
+    <div class="modal-body">
+      <div class="modal-meta" id="mMeta"></div>
+      <p class="modal-desc" id="mDesc"></p>
+      <div id="mSlide"></div>
+      <a id="mNotionLink" href="#" target="_blank" rel="noopener" class="modal-notion-link">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Notionで開く
+      </a>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  © 2026 BottoK Inc. &nbsp;·&nbsp; データソース: Notion 🤖 AI活用事例DB
+  &nbsp;·&nbsp; <a href="https://www.notion.so/3e4668ffa71e4d6d9bcc3f356588dbc3" target="_blank" rel="noopener">DBを開く</a>
+</footer>
+
+<script>
+// ── Notionコネクタ経由で取得したデータ（2026-03-27）─────────────────────────
+const CASES = [
+  {
+    id: "32fdce48-a5a1-81a2-95fd-c5e17a904607",
+    title: "提案書の初稿をClaudeで10分で作成",
+    desc: "顧客ヒアリング内容をそのままClaudeに貼り付けるだけで、提案書の骨格を10分以内に生成。従来比70%の時間削減を実現。",
+    category: "資料作成", tags: ["Claude","プロンプト"], likes: 12,
+    slideUrl: "", thumbUrl: "", poster: "enegorisan",
+    createdAt: "2026-03-26T23:46:08.924Z",
+    notionUrl: "https://www.notion.so/32fdce48a5a181a295fdc5e17a904607"
+  },
+  {
+    id: "32fdce48-a5a1-81b3-84b4-dd2f1763804d",
+    title: "HubSpotの商談メモを自動で議事録化",
+    desc: "商談後にHubSpotのメモをClaudeに渡し、BANT情報・ネクストアクションを自動整理。入力工数を80%削減。",
+    category: "営業支援", tags: ["Claude","API連携","自動化"], likes: 8,
+    slideUrl: "", thumbUrl: "", poster: "enegorisan",
+    createdAt: "2026-03-26T23:46:08.924Z",
+    notionUrl: "https://www.notion.so/32fdce48a5a181b384b4dd2f1763804d"
+  },
+  {
+    id: "32fdce48-a5a1-81a9-bf55-c6d3e2db91d2",
+    title: "月次レポートのデータ分析と可視化",
+    desc: "Excelの売上データをClaudeに読み込ませ、傾向分析・コメント生成・グラフの示唆文まで自動作成。月次定例の準備が半日から1時間に。",
+    category: "データ分析", tags: ["Claude","プロンプト"], likes: 5,
+    slideUrl: "", thumbUrl: "", poster: "enegorisan",
+    createdAt: "2026-03-26T23:46:08.924Z",
+    notionUrl: "https://www.notion.so/32fdce48a5a181a9bf55c6d3e2db91d2"
+  }
+];
+
+// ── State ────────────────────────────────────────────────────────────────────
+let activeCategory = 'all', searchQuery = '', sortOrder = 'newest';
+const liked = new Set(JSON.parse(localStorage.getItem('bottok_liked') || '[]'));
+
+function fmt(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function filtered() {
+  let list = [...CASES];
+  if (activeCategory !== 'all') list = list.filter(c => c.category === activeCategory);
+  if (searchQuery) { const q = searchQuery.toLowerCase(); list = list.filter(c => c.title.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q) || c.tags.some(t => t.toLowerCase().includes(q))); }
+  return sortOrder === 'likes' ? list.sort((a,b)=>b.likes-a.likes) : list.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+}
+
+function buildPills() {
+  const cats = ['all', ...new Set(CASES.map(c => c.category))];
+  document.getElementById('filterPills').innerHTML = cats.map(cat =>
+    `<button class="pill${cat===activeCategory?' active':''}" data-cat="${cat}" onclick="setCategory('${cat}')">${cat==='all'?'すべて':cat}</button>`
+  ).join('');
+}
+
+function setCategory(cat) { activeCategory = cat; buildPills(); render(); }
+
+function render() {
+  const list = filtered();
+  document.getElementById('resultCount').textContent = `${list.length}件の事例`;
+  document.getElementById('headerCount').textContent = `${CASES.length}事例`;
+  document.getElementById('cardsGrid').innerHTML = list.length
+    ? list.map((c,i) => card(c,i)).join('')
+    : `<div class="state-empty"><div class="state-empty-icon">🔍</div><p>条件に合う事例が見つかりません</p></div>`;
+}
+
+function card(c, i) {
+  const lk = liked.has(c.id);
+  return `
+  <article class="case-card" style="animation-delay:${i*45}ms" onclick="openModal('${c.id}')">
+    <div class="card-thumb">
+      ${c.thumbUrl ? `<img src="${c.thumbUrl}" alt="${c.title}" loading="lazy">` :
+        `<div class="thumb-placeholder"><svg class="thumb-icon" viewBox="0 0 48 48" fill="none">
+          <rect x="6" y="8" width="36" height="32" rx="3" fill="currentColor"/>
+          <rect x="12" y="16" width="16" height="2" rx="1" fill="white" opacity="0.6"/>
+          <rect x="12" y="22" width="24" height="2" rx="1" fill="white" opacity="0.4"/>
+          <rect x="12" y="28" width="20" height="2" rx="1" fill="white" opacity="0.4"/>
+        </svg></div>`}
+      <span class="card-cat-badge cat-${c.category}">${c.category}</span>
+    </div>
+    <div class="card-body">
+      <h3 class="card-title">${c.title}</h3>
+      <p class="card-desc">${c.desc}</p>
+      ${c.tags.length ? `<div class="card-tags">${c.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>` : ''}
+      <div class="card-footer">
+        <span class="card-date">${fmt(c.createdAt)}</span>
+        <div class="card-actions" onclick="event.stopPropagation()">
+          <button class="like-btn${lk?' liked':''}" onclick="toggleLike(event,'${c.id}')" id="like-${c.id}">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="${lk?'currentColor':'none'}" stroke="currentColor" stroke-width="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+            <span id="lc-${c.id}">${c.likes+(lk?1:0)}</span>
+          </button>
+          ${c.slideUrl ? `<a class="slide-link" href="${c.slideUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            スライド
+          </a>` : ''}
+        </div>
+      </div>
+    </div>
+  </article>`;
+}
+
+function toggleLike(e, id) {
+  e.stopPropagation();
+  const c = CASES.find(x => x.id === id);
+  if (!c) return;
+  const btn = document.getElementById(`like-${id}`);
+  const cnt = document.getElementById(`lc-${id}`);
+  if (liked.has(id)) {
+    liked.delete(id); btn.classList.remove('liked');
+    btn.querySelector('path').setAttribute('fill','none'); cnt.textContent = c.likes;
+  } else {
+    liked.add(id); btn.classList.add('liked');
+    btn.querySelector('path').setAttribute('fill','currentColor'); cnt.textContent = c.likes+1;
+  }
+  localStorage.setItem('bottok_liked', JSON.stringify([...liked]));
+}
+
+function openModal(id) {
+  const c = CASES.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('mTitle').textContent = c.title;
+  document.getElementById('mMeta').innerHTML = `
+    <span class="card-cat-badge cat-${c.category}" style="position:static;height:22px;padding:0 10px;display:inline-flex;align-items:center;border-radius:999px;font-size:11px;">${c.category}</span>
+    ${c.tags.map(t=>`<span class="tag">${t}</span>`).join('')}
+    <span style="font-size:11px;color:var(--ink3)">${fmt(c.createdAt)} · ${c.poster}</span>`;
+  document.getElementById('mDesc').textContent = c.desc || '概要未入力';
+  document.getElementById('mSlide').innerHTML = c.slideUrl
+    ? `<a class="modal-slide-btn" href="${c.slideUrl}" target="_blank" rel="noopener">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Googleスライドを開く</a>`
+    : `<p class="modal-slide-nourl">スライドはまだ登録されていません。</p>`;
+  document.getElementById('mNotionLink').href = c.notionUrl;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); document.body.style.overflow = ''; }
+
+document.getElementById('modalOverlay').addEventListener('click', e => { if (e.target === document.getElementById('modalOverlay')) closeModal(); });
+document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+document.getElementById('searchInput').addEventListener('input', e => { searchQuery = e.target.value.trim(); render(); });
+document.getElementById('sortSelect').addEventListener('change', e => { sortOrder = e.target.value; render(); });
+
+buildPills();
+render();
+</script>
+</body>
+</html>
