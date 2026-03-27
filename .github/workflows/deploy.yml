@@ -1,14 +1,9 @@
 name: Build & Deploy AI Cases Site
 
 on:
-  # 毎日午前7時（JST）に自動実行
   schedule:
     - cron: '0 22 * * *'   # UTC 22:00 = JST 07:00
-
-  # Notionを更新した後に手動でも実行できる
   workflow_dispatch:
-
-  # mainブランチにpushしたときも実行
   push:
     branches:
       - main
@@ -41,13 +36,16 @@ jobs:
           NOTION_DB_ID: ${{ secrets.NOTION_DB_ID }}
         run: node scripts/fetch_notion.js
 
-      - name: HTMLをビルド
-        run: node scripts/build.js
+      - name: HTMLをビルド（distディレクトリに出力）
+        run: |
+          mkdir -p dist
+          node scripts/build.js
+          mv index.html dist/index.html
 
-      - name: GitHub Pages用にアップロード
+      - name: GitHub Pages用にアップロード（distのみ）
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: './dist'
 
       - name: GitHub Pages にデプロイ
         id: deployment
